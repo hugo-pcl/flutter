@@ -39,13 +39,25 @@ class MockWindow : public FlutterWindow {
   MOCK_METHOD(void, OnResize, (unsigned int, unsigned int), (override));
   MOCK_METHOD(void, OnPaint, (), (override));
   MOCK_METHOD(void,
-              OnPointerMove,
-              (double, double, FlutterPointerDeviceKind, int32_t, int),
-              (override));
-  MOCK_METHOD(void,
-              OnPointerDown,
-              (double, double, FlutterPointerDeviceKind, int32_t, UINT),
-              (override));
+    OnPointerMove,
+    (double,
+     double,
+     FlutterPointerDeviceKind,
+     int32_t,
+     uint32_t,
+     uint32_t,
+     int),
+    (override));
+    MOCK_METHOD(void,
+      OnPointerDown,
+      (double,
+       double,
+       FlutterPointerDeviceKind,
+       int32_t,
+       UINT,
+       uint32_t,
+       uint32_t),
+      (override));
   MOCK_METHOD(void,
               OnPointerUp,
               (double, double, FlutterPointerDeviceKind, int32_t, UINT),
