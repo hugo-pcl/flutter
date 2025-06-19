@@ -564,6 +564,7 @@ FlutterWindow::HandleMessage(UINT const message,
       break;
     case WM_POINTERDOWN:
     case WM_POINTERUPDATE:
+    case WM_POINTERUP:
     case WM_POINTERLEAVE: {
       xPos = GET_X_LPARAM(lparam);
       yPos = GET_Y_LPARAM(lparam);
@@ -572,6 +573,10 @@ FlutterWindow::HandleMessage(UINT const message,
       auto pointerId = GET_POINTERID_WPARAM(wparam);
       POINTER_INFO pointerInfo;
       if (GetPointerInfo(pointerId, &pointerInfo)) {
+        POINT pt = pointerInfo.ptPixelLocation;
+        ScreenToClient(window_handle_, &pt);
+        double dx = static_cast<double>(pt.x);
+        double dy = static_cast<double>(pt.y);
         UINT32 pressure = 0;
         UINT32 rotation = 0;
         if (pointerInfo.pointerType == PT_PEN) {
@@ -595,14 +600,20 @@ FlutterWindow::HandleMessage(UINT const message,
             break;
         }
         if (message == WM_POINTERDOWN) {
-          OnPointerDown(x, y, device_kind, touch_id, WM_LBUTTONDOWN, rotation,
+          OnPointerDown(dx, dy, device_kind, touch_id, WM_LBUTTONDOWN, rotation,
                         pressure);
         } else if (message == WM_POINTERUPDATE &&
                     pointerInfo.pointerFlags & POINTER_FLAG_INCONTACT) {
-          OnPointerMove(x, y, device_kind, touch_id, rotation, pressure, 0);
-        } else if (message == WM_POINTERLEAVE) {
-          OnPointerUp(x, y, device_kind, touch_id, WM_LBUTTONUP);
-          OnPointerLeave(x, y, device_kind, touch_id);
+          OnPointerMove(dx, dy, device_kind, touch_id, rotation, pressure, 0);
+        } else if (message == WM_POINTERUP) {
+          OnPointerUp(dx, dy, device_kind, touch_id, WM_LBUTTONUP);
+
+          if (device_kind == kFlutterPointerDeviceKindStylus) {
+            OnPointerLeave(dx, dy, device_kind, touch_id);
+            touch_id_generator_.ReleaseNumber(pointerId);
+          }
+        } else if (message == WM_POINTERLEAVE && device_kind != kFlutterPointerDeviceKindStylus) {
+          OnPointerLeave(dx, dy, device_kind, touch_id);
           touch_id_generator_.ReleaseNumber(pointerId);
         }
       }
